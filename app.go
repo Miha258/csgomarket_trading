@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 
 
 func (a *App) GetInventoryItems() []interface{} {
-	resp, _ := requests.Get("https://market.csgo.com/api/v2/my-inventory/?key=" + a.secretKey)
+	resp, _ := requests.Get(InventoryEndpoint(a.secretKey))
 
 	var json map[string][]interface{}
 	resp.Json(&json)
@@ -22,7 +21,7 @@ func (a *App) GetInventoryItems() []interface{} {
 
 
 func (a *App) GetItemsOnSell() []interface{} {
-	resp, _ := requests.Get("https://market.csgo.com/api/v2/items?key=" + a.secretKey)
+	resp, _ := requests.Get(ItemsEndpoint(a.secretKey))
 
 	var json map[string][]interface{}
 	resp.Json(&json)
@@ -50,10 +49,12 @@ func (a *App) GetItems() []interface{} {
 }
 
 
-func (a *App) AddFolowItemHandler(hashName string, itemIds []string) {
+func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interface{}) {
+	defer a.FolowError(hashName)
 	for _, itemId := range itemIds {
-		if (!a.IsItemOnSale(itemId)) { //Is item put on sell
-			success, err := a.PutItemOnSale(itemId, a.GetMinPrice(hashName))
+		if (itemId["id"] != nil) {
+			minPrice := a.GetMinPrice(hashName)
+			item_id, success, err := a.PutItemOnSale(itemId["id"].(string), minPrice)
 			if (!success){
 				switch err.(string) {
 				case "inventory_not_loaded":
@@ -71,36 +72,35 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []string) {
 					return
 					}
 				}
+			itemId["item_id"] = item_id
 			}
-		}
-		runtime.EventsEmit(a.ctx, "onItemFolowAdd", hashName)
-		a.priceHandlers[hashName] = func(hashName string) {
-			defer a.FolowError(hashName)
+			runtime.EventsEmit(a.ctx, "onItemFolowAdd", hashName)
+			a.priceHandlers[hashName] = func(hashName string) {
+			
+			
 			for _, itemId := range itemIds {
-				runtime.LogPrintf(a.ctx, "%b", a.IsItemOnSale(itemId))
 				time.Sleep(1 * time.Second)
-				if (!a.IsItemOnSale(itemId)) { //Is item sold and is item selling 
+				if (!a.IsItemOnSale(itemId["item_id"].(string))) { //Is item sold and is item selling 
 					runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
 					delete(a.priceHandlers, hashName)
 				} else {
 					minPrice := a.GetMinPrice(hashName)
 					if minPrice != a.GetMinPrice(hashName) && minPrice != 0 {
-						a.SetItemPrice(itemId, minPrice)
+						a.SetItemPrice(itemId["item_id"].(string), minPrice)
 					}
 				}
 			}
 			a.wg.Done()
-		} 
+			} 
+		}
 }
 
 
 func (a *App) GetMinPrice(hashName string) (minPrice float64) {
-	defer a.PriceError()
-
-	resp, _ := requests.Get("https://market.csgo.com/api/v2/search-item-by-hash-name-specific?key=" + a.secretKey + "&hash_name=" + hashName)
+	resp, _ := requests.Get(SearchItemEndpoint(a.secretKey, hashName))
 	var json map[string][]map[string]interface{}
 	resp.Json(&json)
-
+	
 	float := json["data"][0]["extra"].(map[string]interface{})["float"]
 
 	if minPrice, err := strconv.ParseFloat(float.(string), 64); err == nil {
@@ -115,6 +115,7 @@ func (a *App) GetMinPrice(hashName string) (minPrice float64) {
 		}
 		return minPrice
 	} 
+
 	panic("Invalid float value")
 }
 
@@ -126,27 +127,23 @@ func (a *App) RemoveItemFollow(hashName string) {
 
 
 func (a *App) SetItemPrice(itemId string, price float64) {
-	requests.Get("https://market.csgo.com/api/v2/set-price?key=" + a.secretKey + "&item_id=" + itemId + "&price=" + fmt.Sprintf("%f", price) + "&cur=USD")
+	requests.Get(SetItemPriceEndpoint(a.secretKey, itemId, price))
 }
 
 
-func (a *App) PutItemOnSale(itemId string, price float64) (success bool, error interface{}) {
-	resp, _ := requests.Get("https://market.csgo.com/api/v2/add-to-sale?key=" + a.secretKey + "&id=" + itemId + "&price=" + fmt.Sprintf("%f", price * 1000) + "&cur=USD")
+func (a *App) PutItemOnSale(itemId string, price float64) (item_id string, success bool, error interface{}) {
+	resp, _ := requests.Get(PutItemOnSaleEndpoint(a.secretKey, itemId, price))
 	var json map[string]interface{}
 	resp.Json(&json)
 	if (!json["success"].(bool)){
-		return false, json["error"]
+		return "", false, json["error"]
 	}
-	return true, nil
+	return json["item_id"].(string), true, nil
 }
 
 
-
-
-
-
 func (a *App) UpdateItems([]string) {
-	for k := range a.priceHandlers {
+	for k, _ := range a.priceHandlers {
 		runtime.EventsEmit(a.ctx, "onItemFolowAdd", k)
 	}
 }
@@ -154,8 +151,7 @@ func (a *App) UpdateItems([]string) {
 
 func (a *App) SetApiKey(apiKey string) interface{} {
 	a.secretKey = apiKey
-	
-	resp, _ := requests.Get("https://market.csgo.com/api/v2/test?key=" + a.secretKey)
+	resp, _ := requests.Get(TestEndpoint(a.secretKey))
 	var json map[string]interface{}
 	resp.Json(&json)
 	
