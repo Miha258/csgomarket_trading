@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+        <script src="https://unpkg.com/vue@next"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <title>Csgo market trading</title>
+      <script type="module" crossorigin src="/assets/index.70082f51.js"></script>
+      <link rel="stylesheet" href="/assets/index.6867ca9e.css">
+    </head>
+    <body>
+        <div id="app">
+            <div class="container center-align">
+                <input id="apikey" placeholder="Api key">
+                <div class="row" v-for="(row, index) in this.items" :key="index">
+                    <div class="item col s2" v-for="(item, index) in row" :key="index">
+                        <h4>{{this.itemHashNames[item.market_hash_name].length}}x</h4>
+                        <img :src="'https://cdn.csgo.com//item/' + item.market_hash_name.split(' ').join('%20').replace('|', '%7C') + '/150.png'">
+                        <h5 :id="item.id || item.item_id">{{item.market_hash_name}}</h5>
+                        <button :name="item.market_hash_name" class="waves-effect waves-light btn folow-btn" @click="folowItemPrice">Відслідковувати</button>
+                    </div>
+                </div>
+                <button style="margin-bottom: 5%; margin-top: 5%;" class="waves-effect waves-light btn-large" @click="updateItemList">Обновити</button>
+            </div>
+        </div>
+        
+    </body>
+</html>
