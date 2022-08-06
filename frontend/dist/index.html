@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
         <title>Csgo market trading</title>
-      <script type="module" crossorigin src="/assets/index.70082f51.js"></script>
+      <script type="module" crossorigin src="/assets/index.51a3e41c.js"></script>
       <link rel="stylesheet" href="/assets/index.6867ca9e.css">
     </head>
     <body>
@@ -19,7 +19,7 @@
                         <h4>{{this.itemHashNames[item.market_hash_name].length}}x</h4>
                         <img :src="'https://cdn.csgo.com//item/' + item.market_hash_name.split(' ').join('%20').replace('|', '%7C') + '/150.png'">
                         <h5 :id="item.id || item.item_id">{{item.market_hash_name}}</h5>
-                        <button :name="item.market_hash_name" class="waves-effect waves-light btn folow-btn" @click="folowItemPrice">Відслідковувати</button>
+                        <button :id="item.item_id ? item.market_hash_name : null" class="waves-effect waves-light btn folow-btn" @click="folowItemPrice">Відслідковувати</button>
                     </div>
                 </div>
                 <button style="margin-bottom: 5%; margin-top: 5%;" class="waves-effect waves-light btn-large" @click="updateItemList">Обновити</button>

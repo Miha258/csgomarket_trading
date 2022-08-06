@@ -16,13 +16,13 @@ const App = {
         })
 
         EventsOn("onItemFolowRemove", (itemHashName) => {
-            const item = document.getElementsByTagName('button').namedItem(itemHashName)
+            const item = document.getElementById(itemHashName)
             item.innerText = 'Відслідковувати'
             item.classList.remove('disabled')
         })
 
         EventsOn("onItemFolowAdd", itemHashName => {
-            const item = document.getElementsByTagName('button').namedItem(itemHashName)
+            const item = document.getElementById(itemHashName)
             item.innerText = 'Відісідковується'
             item.classList.add('disabled')
         })
@@ -39,7 +39,6 @@ const App = {
                 if (err){
                     window.M.toast({ html: err })
                 } else {
-                    this.itemHashNames = {}
                     this.items = await GetItems()
                     this.getCountOfItem()
                 
@@ -59,18 +58,17 @@ const App = {
             }
         },
         getCountOfItem(){
+            this.itemHashNames = {}
             this.items.forEach(item => {
                 const itemHashName = item.market_hash_name
-                const id = item.id || item.item_id
                 if (!this.itemHashNames[itemHashName]){
-                    this.itemHashNames[itemHashName] = [id]
+                    this.itemHashNames[itemHashName] = [{item_id: item.item_id, id: item.id}]
                 } else {
                     const index = this.items.indexOf(item)
                     if (index !== -1) {
                         this.items.splice(index, 1);
                     }
-                    this.itemHashNames[itemHashName].push(id)
-                    console.log(this.itemHashNames)
+                    this.itemHashNames[itemHashName].push({item_id: item.item_id, id: item.id})
                 }
             })
         }
