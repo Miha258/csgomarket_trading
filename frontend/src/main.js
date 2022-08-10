@@ -15,7 +15,7 @@ const App = {
             window.M.toast({ html: error })
         })
 
-        EventsOn("onItemFolowRemove", (itemHashName) => {
+        EventsOn("onItemFolowRemove", itemHashName => {
             const item = document.getElementById(itemHashName)
             item.innerText = 'Відслідковувати'
             item.classList.remove('disabled')
@@ -41,16 +41,13 @@ const App = {
                 } else {
                     this.items = await GetItems()
                     this.getCountOfItem()
-                
-                    const rows = (Math.ceil(this.items.length / 5)) + 1
-                    const newItems = []
-        
-
-                    for (let i = 0; i < this.items.length; i += rows){ //Split on rows
-                        const row = this.items.slice(i, i + rows);
-                        newItems.push(row)
+                    
+                    const buttons = document.getElementsByTagName('button')
+                    for (let i = 0; i < (buttons.length - 1); i++){
+                        const btn = buttons.item(i)
+                        btn.innerText = 'Відслідковувати'
+                        btn.classList.remove('disabled')
                     }
-                    this.items = newItems
                     UpdateItems()
                 }
             } else {
@@ -60,19 +57,17 @@ const App = {
         getCountOfItem(){
             this.itemHashNames = {}
             this.items.forEach(item => {
-                const itemHashName = item.market_hash_name
-                if (!this.itemHashNames[itemHashName]){
-                    this.itemHashNames[itemHashName] = [{item_id: item.item_id, id: item.id}]
+                if (Object.keys(this.itemHashNames).includes(item.market_hash_name)){
+                    const index = this.items.findIndex(i => i.market_hash_name === item.market_hash_name)
+                    this.items.splice(index, 1)
+                    this.itemHashNames[item.market_hash_name].push({item_id: item.item_id, id: item.id})
                 } else {
-                    const index = this.items.indexOf(item)
-                    if (index !== -1) {
-                        this.items.splice(index, 1);
-                    }
-                    this.itemHashNames[itemHashName].push({item_id: item.item_id, id: item.id})
+                    this.itemHashNames[item.market_hash_name] = [{item_id: item.item_id, id: item.id}]
                 }
             })
+            this.items = this.itemHashNames
         }
-    },
+    }
 }
 
 Vue.createApp(App).mount('#app')
