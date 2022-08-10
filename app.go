@@ -51,6 +51,7 @@ func (a *App) GetItems() []interface{} {
 
 func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interface{}) {
 	defer a.FolowError(hashName)
+	runtime.EventsEmit(a.ctx, "onItemFolowAdd", hashName)
 	for _, itemId := range itemIds {
 		if (itemId["id"] != nil) {
 			minPrice := a.GetMinPrice(hashName)
@@ -74,10 +75,9 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 				}
 			itemId["item_id"] = item_id
 			}
-			runtime.EventsEmit(a.ctx, "onItemFolowAdd", hashName)
 			a.priceHandlers[hashName] = func(hashName string) {
 			
-			
+
 			for _, itemId := range itemIds {
 				time.Sleep(1 * time.Second)
 				if (!a.IsItemOnSale(itemId["item_id"].(string))) { //Is item sold and is item selling 
