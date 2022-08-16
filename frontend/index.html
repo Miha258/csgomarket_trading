@@ -12,13 +12,11 @@
         <div id="app">
             <div class="container center-align">
                 <input id="apikey" placeholder="Api key">
-                <div class="row" v-for="(row, index) in this.items" :key="index">
-                    <div class="item col s2" v-for="(item, index) in row" :key="index">
-                        <h4>{{this.itemHashNames[item.market_hash_name].length}}x</h4>
-                        <img :src="'https://cdn.csgo.com//item/' + item.market_hash_name.split(' ').join('%20').replace('|', '%7C') + '/150.png'">
-                        <h5 :id="item.id || item.item_id">{{item.market_hash_name}}</h5>
-                        <button :id="item.item_id ? item.market_hash_name : null" class="waves-effect waves-light btn folow-btn" @click="folowItemPrice">Відслідковувати</button>
-                    </div>
+                <div class="row col s2" v-for="(item, index) in Object.keys(this.items)" :key="index">
+                    <h4>{{this.items[item].length}}x</h4>
+                    <img :src="'https://cdn.csgo.com//item/' + item.split(' ').join('%20').replace('|', '%7C') + '/150.png'">
+                    <h5 :id="this.items[item][0].id || this.items[item][0].item_id">{{item}}</h5>
+                    <button :id="item" class="waves-effect waves-light btn folow-btn" @click="folowItemPrice">Відслідковувати</button> 
                 </div>
                 <button style="margin-bottom: 5%; margin-top: 5%;" class="waves-effect waves-light btn-large" @click="updateItemList">Обновити</button>
             </div>
