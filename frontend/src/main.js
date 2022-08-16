@@ -29,8 +29,11 @@ const App = {
     },
     methods: {
         async folowItemPrice(event) {
+            document.getElementsByTagName('h5')[0]
             const item = event.target.parentElement.getElementsByTagName('h5')[0]
-            AddFolowItemHandler(item.textContent, this.itemHashNames[item.textContent])
+            const min = parseFloat(item.parentElement.getElementsByTagName('input')[0].value)
+            const max = parseFloat(item.parentElement.getElementsByTagName('input')[1].value)
+            AddFolowItemHandler(item.textContent, this.itemHashNames[item.textContent], min, max)
         },
         async updateItemList() {
             const apiKey = document.getElementById("apikey")
