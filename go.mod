@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/asmcos/requests v0.0.0-20210319030608-c839e8ae4946
-	github.com/wailsapp/wails/v2 v2.0.0-beta.42
+	github.com/wailsapp/wails/v2 v2.0.0-beta.43
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 

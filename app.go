@@ -58,10 +58,10 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 			var err interface{}
 			
 			if (minPrice < min){
-				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), minPrice)
+				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), min)
 			}
 			if (minPrice > max){
-				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), minPrice)
+				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), max)
 			}
 			
 			if (!success){
