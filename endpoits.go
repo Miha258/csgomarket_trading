@@ -17,6 +17,7 @@ func SearchItemEndpoint(secretKey string, hashName string) string {
 	return fmt.Sprintf("https://market.csgo.com/api/v2/search-item-by-hash-name-specific?key=%s&hash_name=%s", secretKey, hashName)
 }
 
+
 func SetItemPriceEndpoint(secretKey string, itemId string, price float64) string {
 	return fmt.Sprintf("https://market.csgo.com/api/v2/set-price?key=%s&item_id=%s&price=%f&cur=USD", secretKey, itemId, price * 1000)
 }

@@ -1,18 +1,16 @@
 package main
 
 import (
-	"strconv"
 	"time"
-
 	"github.com/asmcos/requests"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"golang.org/x/exp/slices"
+	"math"
 )
 
 
 func (a *App) GetInventoryItems() []interface{} {
 	resp, _ := requests.Get(InventoryEndpoint(a.secretKey))
-
 	var json map[string][]interface{}
 	resp.Json(&json)
 
@@ -49,13 +47,23 @@ func (a *App) GetItems() []interface{} {
 }
 
 
-func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interface{}) {
+func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interface{}, min float64, max float64) {
 	defer a.FolowError(hashName)
 	runtime.EventsEmit(a.ctx, "onItemFolowAdd", hashName)
 	for _, itemId := range itemIds {
 		if (itemId["id"] != nil) {
 			minPrice := a.GetMinPrice(hashName)
-			item_id, success, err := a.PutItemOnSale(itemId["id"].(string), minPrice)
+			var item_id string
+			var success bool
+			var err interface{}
+			
+			if (minPrice < min){
+				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), minPrice)
+			}
+			if (minPrice > max){
+				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), minPrice)
+			}
+			
 			if (!success){
 				switch err.(string) {
 				case "inventory_not_loaded":
@@ -76,47 +84,40 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 			itemId["item_id"] = item_id
 			}
 			a.priceHandlers[hashName] = func(hashName string) {
-			
-
-			for _, itemId := range itemIds {
-				time.Sleep(1 * time.Second)
-				if (!a.IsItemOnSale(itemId["item_id"].(string))) { //Is item sold and is item selling 
-					runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
-					delete(a.priceHandlers, hashName)
-				} else {
-					minPrice := a.GetMinPrice(hashName)
-					if minPrice != a.GetMinPrice(hashName) && minPrice != 0 {
-						a.SetItemPrice(itemId["item_id"].(string), minPrice)
+				for _, itemId := range itemIds {
+					time.Sleep(1 * time.Second)
+					if (!a.IsItemOnSale(itemId["item_id"].(string))) { //Is item sold and is item selling 
+						runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
+						delete(a.priceHandlers, hashName)
+					} else {
+						minPrice := a.GetMinPrice(hashName)
+						if minPrice != a.GetMinPrice(hashName) && minPrice != 0 {
+							if (minPrice < min){
+								a.SetItemPrice(itemId["item_id"].(string), min)
+							}
+							if (minPrice > max){
+								a.SetItemPrice(itemId["item_id"].(string), max)
+							}
+						}
 					}
 				}
-			}
-			a.wg.Done()
+				a.wg.Done()
 			} 
 		}
 }
 
 
-func (a *App) GetMinPrice(hashName string) (minPrice float64) {
+func (a *App) GetMinPrice(hashName string) (float64) {
 	resp, _ := requests.Get(SearchItemEndpoint(a.secretKey, hashName))
-	var json map[string][]map[string]interface{}
+	var json map[string][]map[string]float64
 	resp.Json(&json)
-	
-	float := json["data"][0]["extra"].(map[string]interface{})["float"]
+	minPrice := json["data"][0]["price"] / 1000
 
-	if minPrice, err := strconv.ParseFloat(float.(string), 64); err == nil {
-		for _, item := range json["data"] {
-			extra := item["extra"].(map[string]interface{})
-			price := extra["float"].(string)
-			if price, err := strconv.ParseFloat(price, 64); err == nil {
-				if price < minPrice && price != 0 {
-					minPrice = price
-				}
-			}
-		}
-		return minPrice
-	} 
-
-	panic("Invalid float value")
+	for _, item := range json["data"] {
+		price := item["price"] / 1000
+		minPrice = math.Min(price, minPrice)
+	}
+	return minPrice - 0.001 
 }
 
 
