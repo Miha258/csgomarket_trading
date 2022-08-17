@@ -57,11 +57,12 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 			var success bool
 			var err interface{}
 			
-			if (minPrice < min){
+			if (minPrice < min && min != 0){
 				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), min)
-			}
-			if (minPrice > max){
+			} else if (minPrice > max && max != 0){
 				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), max)
+			} else {
+				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), minPrice)
 			}
 			
 			if (!success){
@@ -85,18 +86,20 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 			}
 			a.priceHandlers[hashName] = func(hashName string) {
 				for _, itemId := range itemIds {
-					time.Sleep(1 * time.Second)
+					runtime.LogPrintf(a.ctx, "%d", len(itemIds) / 4)
+					time.Sleep(time.Duration(len(itemIds) / 4) * time.Millisecond)
 					if (!a.IsItemOnSale(itemId["item_id"].(string))) { //Is item sold and is item selling 
 						runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
 						delete(a.priceHandlers, hashName)
 					} else {
 						minPrice := a.GetMinPrice(hashName)
 						if minPrice != a.GetMinPrice(hashName) && minPrice != 0 {
-							if (minPrice < min){
+							if (minPrice < min && min != 0){
 								a.SetItemPrice(itemId["item_id"].(string), min)
-							}
-							if (minPrice > max){
+							} else if (minPrice > max && max != 0){
 								a.SetItemPrice(itemId["item_id"].(string), max)
+							} else {
+								a.SetItemPrice(itemId["item_id"].(string), minPrice)
 							}
 						}
 					}
