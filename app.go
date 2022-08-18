@@ -86,13 +86,12 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 			}
 			a.priceHandlers[hashName] = func(hashName string) {
 				for _, itemId := range itemIds {
-					runtime.LogPrintf(a.ctx, "%d", len(itemIds) / 4)
-					time.Sleep(time.Duration(len(itemIds) / 4) * time.Millisecond)
 					if (!a.IsItemOnSale(itemId["item_id"].(string))) { //Is item sold and is item selling 
 						runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
 						delete(a.priceHandlers, hashName)
 					} else {
 						minPrice := a.GetMinPrice(hashName)
+						time.Sleep(time.Duration(len(itemIds) / 4) * time.Millisecond)
 						if minPrice != a.GetMinPrice(hashName) && minPrice != 0 {
 							if (minPrice < min && min != 0){
 								a.SetItemPrice(itemId["item_id"].(string), min)
@@ -131,6 +130,7 @@ func (a *App) RemoveItemFollow(hashName string) {
 
 
 func (a *App) SetItemPrice(itemId string, price float64) {
+	runtime.LogPrint(a.ctx, SetItemPriceEndpoint(a.secretKey, itemId, price))
 	requests.Get(SetItemPriceEndpoint(a.secretKey, itemId, price))
 }
 
