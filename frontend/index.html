@@ -12,10 +12,16 @@
         <div id="app">
             <div class="container center-align">
                 <input id="apikey" placeholder="Api key">
-                <div class="row col s2" v-for="(item, index) in Object.keys(this.items)" :key="index">
+                <div v-for="(item, index) in Object.keys(this.items)" :key="index">
                     <h4>{{this.items[item].length}}x</h4>
                     <img :src="'https://cdn.csgo.com//item/' + item.split(' ').join('%20').replace('|', '%7C') + '/150.png'">
                     <h5 :id="this.items[item][0].id || this.items[item][0].item_id">{{item}}</h5>
+                    <div style="padding-left: 20rem; padding-right: 20rem;">
+                        <input type="text">
+                        <label for="input_text">Min</label>
+                        <input type="text">
+                        <label for="input_text">Max</label>
+                    </div>
                     <button :id="item" class="waves-effect waves-light btn folow-btn" @click="folowItemPrice">Відслідковувати</button> 
                 </div>
                 <button style="margin-bottom: 5%; margin-top: 5%;" class="waves-effect waves-light btn-large" @click="updateItemList">Обновити</button>

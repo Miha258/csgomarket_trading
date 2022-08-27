@@ -60,9 +60,7 @@ const App = {
         getCountOfItem(){
             this.itemHashNames = {}
             this.items.forEach(item => {
-                if (Object.keys(this.itemHashNames).includes(item.market_hash_name)){
-                    const index = this.items.findIndex(i => i.market_hash_name === item.market_hash_name)
-                    this.items.splice(index, 1)
+                if (this.itemHashNames[item.market_hash_name]){
                     this.itemHashNames[item.market_hash_name].push({item_id: item.item_id, id: item.id})
                 } else {
                     this.itemHashNames[item.market_hash_name] = [{item_id: item.item_id, id: item.id}]
