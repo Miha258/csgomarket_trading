@@ -90,10 +90,10 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 						runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
 						delete(a.priceHandlers, hashName)
 					} else {
-						currentPrice := a.GetCurrentPrice(itemId["item_id"].(string)) - 0.001
+						currentPrice := a.GetCurrentPrice(itemId["item_id"].(string))
 						time.Sleep(1500 * time.Millisecond)
 						minPrice := a.GetMinPrice(hashName)
-						if minPrice != currentPrice && minPrice != 0 && currentPrice != 0 {
+						if minPrice < currentPrice && minPrice != 0 && currentPrice != 0 {
 							if (minPrice < min && min != 0){
 								a.SetItemPrice(itemId["item_id"].(string), min)
 							} else if (minPrice > max && max != 0){
