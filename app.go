@@ -57,12 +57,12 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 			var success bool
 			var err interface{}
 			
-			if (minPrice < min && min != 0){
+			if (*minPrice < min && min != 0){
 				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), min)
-			} else if (minPrice > max && max != 0){
+			} else if (*minPrice > max && max != 0){
 				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), max)
 			} else {
-				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), minPrice)
+				item_id, success, err = a.PutItemOnSale(itemId["id"].(string), *minPrice)
 			}
 			
 			if (!success){
@@ -93,13 +93,13 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 				runtime.EventsEmit(a.ctx, "onItemFolowRemove", hashName)
 				delete(a.priceHandlers, hashName)
 			} else {
-				if minPrice != 0 {
-					if (minPrice < min && min != 0){
+				if *minPrice <= 0 {
+					if (*minPrice < min && min != 0){
 						a.SetItemPrice(itemId, min)
-					} else if (minPrice > max && max != 0){
+					} else if (*minPrice > max && max != 0){
 						a.SetItemPrice(itemId, max)
 					} else {
-						a.SetItemPrice(itemId, minPrice)
+						a.SetItemPrice(itemId, *minPrice)
 					}
 				}
 			}
@@ -111,7 +111,7 @@ func (a *App) AddFolowItemHandler(hashName string, itemIds []map[string]interfac
 
 
 
-func (a *App) GetMinPrice(hashName string) (float64) {
+func (a *App) GetMinPrice(hashName string) (*float64) {
 	resp, _ := requests.Get(SearchItemEndpoint(a.secretKey, hashName))
 	var json map[string][]map[string]float64
 	resp.Json(&json)
@@ -120,7 +120,8 @@ func (a *App) GetMinPrice(hashName string) (float64) {
 		price := item["price"] / 1000
 		minPrice = math.Min(price, minPrice)
 	}
-	return minPrice - 0.001
+	minPrice -= 0.001
+	return &minPrice
 }
 
 
@@ -151,20 +152,6 @@ func (a *App) UpdateItems([]string) {
 		runtime.EventsEmit(a.ctx, "onItemFolowAdd", k)
 	}
 }
-
-
-// func (a *App) GetCurrentPrice(itemId string) float64 {
-// 	items := a.GetItemsOnSell()
-	
-// 	for _, item := range items {
-// 		id := item.(map[string]interface{})["item_id"]
-// 		if (id == itemId){
-// 			price := item.(map[string]interface{})["price"].(float64)
-// 			return price 
-// 		}
-// 	}
-// 	return 0
-// }
 
 
 func (a *App) SetApiKey(apiKey string) interface{} {
